@@ -1,41 +1,62 @@
 ---
-citation_author:
-- M. Wasserman
-- F. Baker
-citation_doi: 10.17487/RFC6296
-citation_issn: 2070-1721
-citation_pdf_url: "https://www.rfc-editor.org/rfc/pdfrfc/rfc6296.txt.pdf"
-citation_publication_date: June, 2011
-citation_technical_report_number: rfc6296
-citation_title: IPv6-to-IPv6 Network Prefix Translation
-creator: rfchandler version 0.2
 lang: en
 robots: index,follow
 title: "RFC 6296: IPv6-to-IPv6 Network Prefix Translation"
+cat: std
+submissiontype: IETF
+ipr: trust200902
+area: Int
+wg: 6MAN
+kw: Internet-Draft
+updates: 6296
 ---
 
-[\[[RFC Home](https://www.rfc-editor.org/ "RFC Editor")\]
-\[[TEXT](https://www.rfc-editor.org/rfc/rfc6296.txt)\|[PDF](https://www.rfc-editor.org/rfc/pdfrfc/rfc6296.txt.pdf)\|[HTML](https://www.rfc-editor.org/rfc/rfc6296.html)\]
-\[[Tracker](https://datatracker.ietf.org/doc/rfc6296 "IETF Datatracker information for this document")\]
-\[[IPR](https://datatracker.ietf.org/ipr/search/?rfc=6296&submit=rfc "IPR disclosures related to this document")\]
-\[[Errata](https://www.rfc-editor.org/errata/rfc6296){.boldtext
-target="_blank"}\] \[[Info
-page](https://www.rfc-editor.org/info/rfc6296 "Info page")\] ]{.pre
-.noprint .docinfo}\
-[ ]{.pre .noprint .docinfo}\
-[ EXPERIMENTAL]{.pre .noprint .docinfo}\
-[ [Errata Exist]{style="color: #C00;"}]{.pre .noprint .docinfo}
+author:
+      -
+        ins: M. Wasserman
+        name: Margaret Wasserman
+        org: Painless Security
+        email: mrw@painless-security.com
+      -
+        ins: F. Baker
+        name: Fred Baker
+        org: Cisco Systems
+        email: fred@cisco.com
 
-    Internet Engineering Task Force (IETF)                      M. Wasserman
-    Request for Comments: 6296                             Painless Security
-    Category: Experimental                                          F. Baker
-    ISSN: 2070-1721                                            Cisco Systems
-                                                                   June 2011
+normative:
+    RFC2119:
+    RFC2526:
+    RFC4193:
+    RFC4291:
+    RFC4443:
+    RFC4787:
 
+informative:
+    [GSE]
+    [NIST] 
+    RFC1071:
+    RFC1624:
+    RFC1918:
+    RFC2827:
+    RFC2993:
+    RFC3424:
+    RFC3484:
+    RFC4864:
+    RFC5245:
+    RFC5389:
+    RFC5766:
+    RFC5902:
+    RFC5925:
+    RFC5996:
+    RFC6052:
+    RFC6092:
+    RFC6144:
+    RFC6145:
+    RFC6146:
+    RFC6147:
+    RFC6204:
 
-                    IPv6-to-IPv6 Network Prefix Translation
-
-    Abstract
+    --- abstract
 
        This document describes a stateless, transport-agnostic IPv6-to-IPv6
        Network Prefix Translation (NPTv6) function that provides the
@@ -44,108 +65,8 @@ page](https://www.rfc-editor.org/info/rfc6296 "Info page")\] ]{.pre
        "inside" and "outside" prefixes, preserving end-to-end reachability
        at the network layer.
 
-    Status of This Memo
-
-       This document is not an Internet Standards Track specification; it is
-       published for examination, experimental implementation, and
-       evaluation.
-
-       This document defines an Experimental Protocol for the Internet
-       community.  This document is a product of the Internet Engineering
-       Task Force (IETF).  It represents the consensus of the IETF
-       community.  It has received public review and has been approved for
-       publication by the Internet Engineering Steering Group (IESG).  Not
-       all documents approved by the IESG are a candidate for any level of
-       Internet Standard; see Section 2 of RFC 5741.
-
-       Information about the current status of this document, any errata,
-       and how to provide feedback on it may be obtained at
-       http://www.rfc-editor.org/info/rfc6296.
-
-    Copyright Notice
-
-       Copyright (c) 2011 IETF Trust and the persons identified as the
-       document authors.  All rights reserved.
-
-       This document is subject to BCP 78 and the IETF Trust's Legal
-       Provisions Relating to IETF Documents
-       (http://trustee.ietf.org/license-info) in effect on the date of
-       publication of this document.  Please review these documents
-       carefully, as they describe your rights and restrictions with respect
-       to this document.  Code Components extracted from this document must
-
-
-
-
-    Wasserman & Baker             Experimental                      [Page 1]
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-   include Simplified BSD License text as described in Section 4.e of
-   the Trust Legal Provisions and are provided without warranty as
-   described in the Simplified BSD License.
-
-Table of Contents
-
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-     1.1.  What is Address Independence?  . . . . . . . . . . . . . .  4
-     1.2.  NPTv6 Applicability  . . . . . . . . . . . . . . . . . . .  5
-     1.3.  Requirements Terminology . . . . . . . . . . . . . . . . .  7
-   2.  NPTv6 Overview . . . . . . . . . . . . . . . . . . . . . . . .  7
-     2.1.  NPTv6: The Simplest Case . . . . . . . . . . . . . . . . .  7
-     2.2.  NPTv6 between Peer Networks  . . . . . . . . . . . . . . .  8
-     2.3.  NPTv6 Redundancy and Load Sharing  . . . . . . . . . . . .  9
-     2.4.  NPTv6 Multihoming  . . . . . . . . . . . . . . . . . . . .  9
-     2.5.  Mapping with No Per-Flow State . . . . . . . . . . . . . . 10
-     2.6.  Checksum-Neutral Mapping . . . . . . . . . . . . . . . . . 10
-   3.  NPTv6 Algorithmic Specification  . . . . . . . . . . . . . . . 11
-     3.1.  NPTv6 Configuration Calculations . . . . . . . . . . . . . 11
-     3.2.  NPTv6 Translation, Internal Network to External Network  . 12
-     3.3.  NPTv6 Translation, External Network to Internal Network  . 12
-     3.4.  NPTv6 with a /48 or Shorter Prefix . . . . . . . . . . . . 12
-     3.5.  NPTv6 with a /49 or Longer Prefix  . . . . . . . . . . . . 13
-     3.6.  /48 Prefix Mapping Example . . . . . . . . . . . . . . . . 13
-     3.7.  Address Mapping for Longer Prefixes  . . . . . . . . . . . 14
-   4.  Implications of Network Address Translator Behavioral
-       Requirements . . . . . . . . . . . . . . . . . . . . . . . . . 15
-     4.1.  Prefix Configuration and Generation  . . . . . . . . . . . 15
-     4.2.  Subnet Numbering . . . . . . . . . . . . . . . . . . . . . 15
-     4.3.  NAT Behavioral Requirements  . . . . . . . . . . . . . . . 15
-   5.  Implications for Applications  . . . . . . . . . . . . . . . . 16
-     5.1.  Recommendation for Network Planners Considering Use of
-           NPTv6 Translation  . . . . . . . . . . . . . . . . . . . . 17
-     5.2.  Recommendations for Application Writers  . . . . . . . . . 18
-     5.3.  Recommendation for Future Work . . . . . . . . . . . . . . 18
-   6.  A Note on Port Mapping . . . . . . . . . . . . . . . . . . . . 18
-   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 19
-   8.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 19
-   9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 20
-     9.1.  Normative References . . . . . . . . . . . . . . . . . . . 20
-     9.2.  Informative References . . . . . . . . . . . . . . . . . . 20
-   Appendix A.  Why GSE?  . . . . . . . . . . . . . . . . . . . . . . 23
-   Appendix B.  Verification Code . . . . . . . . . . . . . . . . . . 25
-
-
-
-
-
-
-
-
-Wasserman & Baker             Experimental                      [Page 2]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-1.  Introduction
+--- middle
+#  Introduction
 
    This document describes a stateless IPv6-to-IPv6 Network Prefix
    Translation (NPTv6) function, designed to provide address
@@ -169,52 +90,41 @@ RFC 6296                          NPTv6                        June 2011
    The stateless approach described in this document has several
    ramifications:
 
-   o  Any security benefit that NAPT44 might offer is not present in
+* Any security benefit that NAPT44 might offer is not present in
       NPTv6, necessitating the use of a firewall to obtain those
       benefits if desired.  An example of such a firewall is described
       in [RFC6092].
 
-   o  End-to-end reachability is preserved, although the address used
+* End-to-end reachability is preserved, although the address used
       "inside" the edge network differs from the address used "outside"
       the edge network.  This has implications for application referrals
       and other uses of Internet layer addresses.
 
-   o  If there are multiple identically configured prefix translators
+* If there are multiple identically configured prefix translators
       between two networks, there is no need for them to exchange
       dynamic state, as there is no dynamic state -- the algorithmic
       translation will be identical across each of them.  The network
       can therefore asymmetrically route, load share, and fail-over
       among them without issue.
 
-   o  Since translation is 1:1 at the network layer, there is no need to
+* Since translation is 1:1 at the network layer, there is no need to
       modify port numbers or other transport parameters.
 
-   o  TCP sessions that authenticate peers using the TCP Authentication
+* TCP sessions that authenticate peers using the TCP Authentication
       Option [RFC5925] cannot have their addresses translated, as the
       addresses are used in the calculation of the Message
       Authentication Code.  This consideration applies in general to any
 
-
-
-Wasserman & Baker             Experimental                      [Page 3]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-      UNilateral Self-Address Fixing (UNSAF) [RFC3424] Protocol, which
+* Unilateral Self-Address Fixing (UNSAF) [RFC3424] Protocol, which
       the IAB recommends against the deployment of in an environment
       that changes Internet addresses.
 
-   o  Applications using the Internet Key Exchange Protocol Version 2
+* Applications using the Internet Key Exchange Protocol Version 2
       (IKEv2) [RFC5996] should, at least in theory, detect the presence
       of the translator; while no NAT traversal solution is required,
       [RFC5996] would require such sessions to use UDP.
 
-1.1.  What is Address Independence?
+##  What is Address Independence?
 
    For the purposes of this document, IPv6 address independence consists
    of the following set of properties:
@@ -255,16 +165,6 @@ RFC 6296                          NPTv6                        June 2011
    medium- to large-sized enterprise networks, including NAT deployments
 
 
-
-Wasserman & Baker             Experimental                      [Page 4]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    in enterprises that have plenty of IPv4 provider-independent address
    space (from IPv4 "swamp space").  It has also been a driver for edge
    networks to become members of Regional Internet Registry (RIR)
@@ -299,8 +199,7 @@ RFC 6296                          NPTv6                        June 2011
    enterprises with plenty of IPv4 swamp space to choose to use IPv4 NAT
    for part, or substantially all, of their internal network instead of
    using their provider-independent address space.
-
-1.2.  NPTv6 Applicability
+##  NPTv6 Applicability
 
    NPTv6 provides a simple and compelling solution to meet the address-
    independence requirement in IPv6.  The address-independence benefit
@@ -311,20 +210,7 @@ RFC 6296                          NPTv6                        June 2011
 
    The fact that NPTv6 does not map ports and is checksum-neutral avoids
    the need for an NPTv6 Translator to rewrite transport layer headers.
-   This makes it feasible to deploy new or improved transport layer
-
-
-
-
-Wasserman & Baker             Experimental                      [Page 5]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
+   This makes it feasible to deploy new or improved transport layer 
    protocols without upgrading NPTv6 Translators.  Similarly, since
    NPTv6 does not rewrite transport layer headers, NPTv6 will not
    interfere with encryption of the full IP payload in many cases.
@@ -371,38 +257,24 @@ RFC 6296                          NPTv6                        June 2011
    There are significant technical impacts associated with the
    deployment of any prefix translation mechanism, including NPTv6, and
    we strongly encourage anyone who is considering the implementation or
-
-
-
-
-
-Wasserman & Baker             Experimental                      [Page 6]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    deployment of NPTv6 to read [RFC4864] and [RFC5902], and to carefully
    consider the alternatives described in that document, some of which
    may cause fewer problems than NPTv6.
 
-1.3.  Requirements Terminology
+##  Requirements Terminology
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in RFC 2119 [RFC2119].
 
-2.  NPTv6 Overview
+#  NPTv6 Overview
 
    NPTv6 may be implemented in an IPv6 router to map one IPv6 address
    prefix to another IPv6 prefix as each IPv6 datagram transits the
    router.  A router that implements an NPTv6 prefix translation
    function is referred to as an NPTv6 Translator.
 
-2.1.  NPTv6: The Simplest Case
+##  NPTv6: The Simplest Case
 
    In its simplest form, an NPTv6 Translator interconnects two network
    links, one of which is an "internal" network link attached to a leaf
@@ -414,6 +286,8 @@ RFC 6296                          NPTv6                        June 2011
    transit the NPTv6 Translator.  The lengths of these two prefixes will
    be functionally the same; if they differ, the longer of the two will
    limit the ability to use subnets in the shorter.
+
+~~~~~~~~~~
 
                External Network:  Prefix = 2001:0DB8:0001:/48
                    --------------------------------------
@@ -429,21 +303,7 @@ RFC 6296                          NPTv6                        June 2011
                Internal Network:  Prefix = FD01:0203:0405:/48
 
                        Figure 1: A Simple Translator
-
-
-
-
-
-
-
-Wasserman & Baker             Experimental                      [Page 7]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
+~~~~~~~~~~
 
    Figure 1 shows an NPTv6 Translator attached to two networks.  In this
    example, the internal network uses IPv6 Unique Local Addresses (ULAs)
@@ -475,6 +335,8 @@ RFC 6296                          NPTv6                        June 2011
    versa.  Or, each network may use ULA prefixes for internal addressing
    and global unicast addresses on the other network.
 
+~~~~~~~~~~
+
                   Internal Prefix = FD01:4444:5555:/48
                   --------------------------------------
                        V            |      External Prefix
@@ -489,23 +351,9 @@ RFC 6296                          NPTv6                        June 2011
                   Internal Prefix = FD01:0203:0405:/48
 
                Figure 2: Flow of Information in Translation
+~~~~~~~~~~
 
-
-
-
-
-
-
-Wasserman & Baker             Experimental                      [Page 8]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-2.3.  NPTv6 Redundancy and Load Sharing
+##  NPTv6 Redundancy and Load Sharing
 
    In some cases, more than one NPTv6 Translator may be attached to a
    network, as shown in Figure 3.  In such cases, NPTv6 Translators are
@@ -513,6 +361,8 @@ RFC 6296                          NPTv6                        June 2011
    is only one translation, even though there are multiple translators,
    they map only one external address (prefix and Interface Identifier
    (IID)) to the internal address.
+
+~~~~~~~~~~
 
                External Network:  Prefix = 2001:0DB8:0001:/48
                    --------------------------------------
@@ -529,9 +379,11 @@ RFC 6296                          NPTv6                        June 2011
                Internal Network:  Prefix = FD01:0203:0405:/48
 
                       Figure 3: Parallel Translators
+~~~~~~~~~~
 
-2.4.  NPTv6 Multihoming
+##  NPTv6 Multihoming
 
+~~~~~~~~~~
             External Network #1:          External Network #2:
          Prefix = 2001:0DB8:0001:/48    Prefix = 2001:0DB8:5555:/48
          ---------------------------    --------------------------
@@ -548,23 +400,12 @@ RFC 6296                          NPTv6                        June 2011
               Internal Network:  Prefix = FD01:0203:0405:/48
 
       Figure 4: Parallel Translators with Different Upstream Networks
+~~~~~~~~~~
 
    When multihoming, NPTv6 Translators are attached to an internal
    network, as shown in Figure 4, but are connected to different
    external networks.  In such cases, NPTv6 Translators are configured
    with the same internal prefix but different external prefixes.  Since
-
-
-
-Wasserman & Baker             Experimental                      [Page 9]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    there are multiple translations, they map multiple external addresses
    (prefix and IID) to the common internal address.  A system within the
    edge network is unable to determine which external address it is
@@ -578,7 +419,7 @@ RFC 6296                          NPTv6                        June 2011
    dependent on it to fail as well.  This is not expected to be a major
    issue, however, in networks where routing is generally stable.
 
-2.5.  Mapping with No Per-Flow State
+##  Mapping with No Per-Flow State
 
    When NPTv6 is used as described in this document, no per-node or per-
    flow state is maintained in the NPTv6 Translator.  Both inbound and
@@ -590,7 +431,7 @@ RFC 6296                          NPTv6                        June 2011
    a significant improvement over NAPT44 devices, but it also has
    significant security implications, which are described in Section 7.
 
-2.6.  Checksum-Neutral Mapping
+##  Checksum-Neutral Mapping
 
    When a change is made to one of the IP header fields in the IPv6
    pseudo-header checksum (such as one of the IP addresses), the
@@ -614,17 +455,6 @@ RFC 6296                          NPTv6                        June 2011
    need for the NPTv6 Translator to modify those transport layer headers
    to correct the checksum value.
 
-
-
-Wasserman & Baker             Experimental                     [Page 10]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    The outgoing checksum correction is achieved by making a change to a
    16-bit section of the source address that is not used for routing in
    the external network.  Due to the nature of checksum arithmetic, when
@@ -635,9 +465,10 @@ RFC 6296                          NPTv6                        June 2011
    As noted in Section 4.2, this mapping results in an edge network
    using a /48 external prefix to be unable to use subnet 0xFFFF.
 
-3.  NPTv6 Algorithmic Specification
+#  NPTv6 Algorithmic Specification
 
    The [RFC4291] IPv6 Address is reproduced for clarity in Figure 5.
+   ~~~~~~~~~~
 
       0    15 16   31 32   47 48   63 64   79 80   95 96  111 112  127
      +-------+-------+-------+-------+-------+-------+-------+-------+
@@ -645,16 +476,17 @@ RFC 6296                          NPTv6                        June 2011
      +-------+-------+-------+-------+-------+-------+-------+-------+
 
             Figure 5: Enumeration of the IPv6 Address [RFC4291]
+~~~~~~~~~~
 
-3.1.  NPTv6 Configuration Calculations
+##  NPTv6 Configuration Calculations
 
    When an NPTv6 Translation function is configured, it is configured
    with
 
-   o  one or more "internal" interfaces with their "internal" routing
+* one or more "internal" interfaces with their "internal" routing
       domain prefixes, and
 
-   o  one or more "external" interfaces with their "external" routing
+* one or more "external" interfaces with their "external" routing
       domain prefixes.
 
    In the simple case, there is one of each.  If a single router
@@ -673,78 +505,51 @@ RFC 6296                          NPTv6                        June 2011
    The translation function calculates the one's complement sum of the
    16-bit words of the /64 external prefix and the /64 internal prefix.
    It then calculates the difference between these values: internal
-
-
-
-Wasserman & Baker             Experimental                     [Page 11]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    minus external.  This value, called the "adjustment", is effectively
    constant for the lifetime of the NPTv6 Translator configuration and
    is used in per-datagram processing.
 
-3.2.  NPTv6 Translation, Internal Network to External Network
+##  NPTv6 Translation, Internal Network to External Network
 
    When a datagram passes through the NPTv6 Translator from an internal
    to an external network, its IPv6 Source Address is either changed in
    two ways or results in the datagram being discarded:
 
-   o  If the internal subnet number has no mapping, such as being 0xFFFF
+* If the internal subnet number has no mapping, such as being 0xFFFF
       or simply not mapped, discard the datagram.  This SHOULD result in
       an ICMP Destination Unreachable.
 
-   o  The internal prefix is overwritten with the external prefix, in
+* The internal prefix is overwritten with the external prefix, in
       effect subtracting the difference between the two checksums (the
       adjustment) from the pseudo-header's checksum, and
 
-   o  A 16-bit word of the address has the adjustment added to it using
+* A 16-bit word of the address has the adjustment added to it using
       one's complement arithmetic.  If the result is 0xFFFF, it is
       overwritten as zero.  The choice of word is as specified in
       Sections 3.4 or 3.5 as appropriate.
 
-3.3.  NPTv6 Translation, External Network to Internal Network
+##  NPTv6 Translation, External Network to Internal Network
 
    When a datagram passes through the NPTv6 Translator from an external
    to an internal network, its IPv6 Destination Address is changed in
    two ways:
 
-   o  The external prefix is overwritten with the internal prefix, in
+* The external prefix is overwritten with the internal prefix, in
       effect adding the difference between the two checksums (the
       adjustment) to the pseudo-header's checksum, and
 
-   o  A 16-bit word of the address has the adjustment subtracted from it
+* A 16-bit word of the address has the adjustment subtracted from it
       (bitwise inverted and added to it) using one's complement
       arithmetic.  If the result is 0xFFFF, it is overwritten as zero.
       The choice of word is as specified in Section 3.4 or Section 3.5
       as appropriate.
 
-3.4.  NPTv6 with a /48 or Shorter Prefix
+##  NPTv6 with a /48 or Shorter Prefix
 
    When an NPTv6 Translator is configured with internal and external
    prefixes that are 48 bits in length (a /48) or shorter, the
    adjustment MUST be added to or subtracted from bits 48..63 of the
    address.
-
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 12]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    This mapping results in no modification of the Interface Identifier
    (IID), which is held in the lower half of the IPv6 address, so it
    will not interfere with future protocols that may use unique IIDs for
@@ -752,7 +557,7 @@ RFC 6296                          NPTv6                        June 2011
 
    NPTv6 Translator implementations MUST implement the /48 mapping.
 
-3.5.  NPTv6 with a /49 or Longer Prefix
+##  NPTv6 with a /49 or Longer Prefix
 
    When an NPTv6 Translator is configured with internal and external
    prefixes that are longer than 48 bits in length (such as a /52, /56,
@@ -765,7 +570,7 @@ RFC 6296                          NPTv6                        June 2011
    NPTv6 Translator implementations SHOULD implement the mapping for
    longer prefixes.
 
-3.6.  /48 Prefix Mapping Example
+##  /48 Prefix Mapping Example
 
    For the network shown in Figure 1, the Internal Prefix is FD01:0203:
    0405:/48, and the External Prefix is 2001:0DB8:0001:/48.
@@ -791,20 +596,6 @@ RFC 6296                          NPTv6                        June 2011
    So, the value 0xD550 is written in the 16-bit subnet area, resulting
    in a mapped external address of 2001:0DB8:0001:D550::1234.
 
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 13]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    When a response datagram is received, it will contain the destination
    address 2001:0DB8:0001:D550::0001, which will be mapped back to FD01:
    0203:0405:0001::1234 using the inverse mapping algorithm.
@@ -820,7 +611,7 @@ RFC 6296                          NPTv6                        June 2011
    So the value 0x0001 is written into the subnet field, and the
    internal value of the subnet field is properly restored.
 
-3.7.  Address Mapping for Longer Prefixes
+##  Address Mapping for Longer Prefixes
 
    If the prefix being mapped is longer than 48 bits, the algorithm is
    slightly more complex.  A common case will be that the internal and
@@ -851,27 +642,13 @@ RFC 6296                          NPTv6                        June 2011
    datagram with an IID of all-zeros while performing address mapping,
    that datagram MUST be dropped, and an ICMPv6 Parameter Problem error
    SHOULD be generated [RFC4443].
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 14]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    Note: This mechanism does involve modification of the IID; it may not
    be compatible with future mechanisms that use unique IIDs for node
    identification.
 
-4.  Implications of Network Address Translator Behavioral Requirements
+#  Implications of Network Address Translator Behavioral Requirements
 
-4.1.  Prefix Configuration and Generation
+##  Prefix Configuration and Generation
 
    NPTv6 Translators MUST support manual configuration of internal and
    external prefixes and MUST NOT place any restrictions on those
@@ -882,13 +659,13 @@ RFC 6296                          NPTv6                        June 2011
    Equipment (CPE) router, the reader is urged to consider the
    requirements of [RFC6204].
 
-4.2.  Subnet Numbering
+##  Subnet Numbering
 
    For reasons detailed in Appendix B, a network using NPTv6 Translation
    and a /48 external prefix MUST NOT use the value 0xFFFF to designate
    a subnet that it expects to be translated.
 
-4.3.  NAT Behavioral Requirements
+##  NAT Behavioral Requirements
 
    NPTv6 Translators MUST support hairpinning behavior, as defined in
    the NAT Behavioral Requirements for UDP document [RFC4787].  This
@@ -911,25 +688,11 @@ RFC 6296                          NPTv6                        June 2011
    session to bypass the NPTv6 Translator for future datagrams.  It
    would also mean that the original sender would be unlikely to
    recognize the response when it arrived.
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 15]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    Because NPTv6 does not perform port mapping and uses a one-to-one,
    reversible-mapping algorithm, none of the other NAT behavioral
    requirements apply to NPTv6.
 
-5.  Implications for Applications
+#  Implications for Applications
 
    NPTv6 Translation does not create several of the problems known to
    exist with other kinds of NATs as discussed in [RFC2993].  In
@@ -950,15 +713,15 @@ RFC 6296                          NPTv6                        June 2011
    However, NPTv6 Translation does create difficulties for some kinds of
    applications.  Some examples include:
 
-   o  An application instance "behind" an NPTv6 Translator will see a
+* An application instance "behind" an NPTv6 Translator will see a
       different address for its connections than its peers "outside" the
       NPTv6 Translator.
 
-   o  An application instance "outside" an NPTv6 Translator will see a
+* An application instance "outside" an NPTv6 Translator will see a
       different address for its connections than any peer "inside" an
       NPTv6 Translator.
 
-   o  An application instance wishing to establish communication with a
+* An application instance wishing to establish communication with a
       peer "behind" an NPTv6 Translator may need to use a different
       address to reach that peer depending on whether the instance is
       behind the same NPTv6 Translator or external to it.  Since an
@@ -969,23 +732,12 @@ RFC 6296                          NPTv6                        June 2011
       would prefer the private address in such a case in order to reduce
       those inefficiencies.
 
-   o  An application instance that moves from a realm "behind" an NPTv6
+* An application instance that moves from a realm "behind" an NPTv6
       Translator to a realm that is "outside" the network, or vice
       versa, may find that it is no longer able to reach its peers at
       the same addresses it was previously able to use.
 
-
-
-Wasserman & Baker             Experimental                     [Page 16]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-   o  An application instance that is intermittently communicating with
+* An application instance that is intermittently communicating with
       a peer that moves from behind an NPTv6 Translator to "outside" of
       it, or vice versa, may find that it is no longer able to reach
       that peer at the same address that it had previously used.
@@ -1020,7 +772,7 @@ RFC 6296                          NPTv6                        June 2011
    to determine what DNS names are associated with it and which names
    are appropriate to use in which contexts.
 
-5.1.  Recommendation for Network Planners Considering Use of NPTv6
+##  Recommendation for Network Planners Considering Use of NPTv6
       Translation
 
    In light of the above, network planners considering the use of NPTv6
@@ -1029,23 +781,7 @@ RFC 6296                          NPTv6                        June 2011
    address-stability and provider-independence benefits are consistent
    with their application requirements.
 
-
-
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 17]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-5.2.  Recommendations for Application Writers
+##  Recommendations for Application Writers
 
    Several mechanisms (e.g., STUN [RFC5389], Traversal Using Relays
    around NAT (TURN) [RFC5766], and Interactive Connectivity
@@ -1057,7 +793,7 @@ RFC 6296                          NPTv6                        June 2011
    translator that can tell an "internal" host what its "external"
    addresses are.
 
-5.3.  Recommendation for Future Work
+##  Recommendation for Future Work
 
    It might be desirable to define a general mechanism that would allow
    hosts within a translation domain to determine their external
@@ -1068,7 +804,7 @@ RFC 6296                          NPTv6                        June 2011
    [RFC6145] [RFC6146] [RFC6052].  For this and other reasons, such a
    mechanism is beyond the scope of this document.
 
-6.  A Note on Port Mapping
+#  A Note on Port Mapping
 
    In addition to overwriting IP addresses when datagrams are forwarded,
    NAPT44 devices overwrite the source port number in outbound traffic
@@ -1093,24 +829,12 @@ RFC 6296                          NPTv6                        June 2011
    payload and restricts the NAPT44 to forwarding transport layers that
    use weak checksum algorithms that are easily recalculated in routers.
 
-
-
-
-Wasserman & Baker             Experimental                     [Page 18]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    Since there is significant detriment caused by modifying transport
    layer headers and very little, if any, benefit to the use of port
    mapping in IPv6, NPTv6 Translators that comply with this
    specification MUST NOT perform port mapping.
 
-7.  Security Considerations
+#  Security Considerations
 
    When NPTv6 is deployed using either of the two-way, algorithmic
    mappings defined in this document, it allows direct inbound
@@ -1146,24 +870,10 @@ RFC 6296                          NPTv6                        June 2011
    would be valuable to test interactions of NPTv6 with various aspects
    of current-day IKEv2/IPsec NAT traversal.
 
-8.  Acknowledgements
+#  Acknowledgements
 
    The checksum-neutral algorithmic address mapping described in this
    document is based on email written by Iljtsch van Beijnum.
-
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 19]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
 
    The following people provided advice or review comments that
    substantially improved this document: Allison Mankin, Christian
@@ -1171,181 +881,7 @@ RFC 6296                          NPTv6                        June 2011
    Jari Arkko, Keith Moore, Mark Townsley, Merike Kaeo, Ralph Droms,
    Remi Despres, Steve Blake, and Tony Hain.
 
-9.  References
-
-9.1.  Normative References
-
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119, March 1997.
-
-   [RFC2526]  Johnson, D. and S. Deering, "Reserved IPv6 Subnet Anycast
-              Addresses", RFC 2526, March 1999.
-
-   [RFC4193]  Hinden, R. and B. Haberman, "Unique Local IPv6 Unicast
-              Addresses", RFC 4193, October 2005.
-
-   [RFC4291]  Hinden, R. and S. Deering, "IP Version 6 Addressing
-              Architecture", RFC 4291, February 2006.
-
-   [RFC4443]  Conta, A., Deering, S., and M. Gupta, "Internet Control
-              Message Protocol (ICMPv6) for the Internet Protocol
-              Version 6 (IPv6) Specification", RFC 4443, March 2006.
-
-   [RFC4787]  Audet, F. and C. Jennings, "Network Address Translation
-              (NAT) Behavioral Requirements for Unicast UDP", BCP 127,
-              RFC 4787, January 2007.
-
-9.2.  Informative References
-
-   [GSE]      O'Dell, M., "GSE - An Alternate Addressing Architecture
-              for IPv6", Work in Progress, February 1997.
-
-   [NIST]     NIST, "Draft NIST Framework and Roadmap for Smart Grid
-              Interoperability Standards, Release 1.0", September 2009.
-
-   [RFC1071]  Braden, R., Borman, D., Partridge, C., and W. Plummer,
-              "Computing the Internet checksum", RFC 1071,
-              September 1988.
-
-   [RFC1624]  Rijsinghani, A., "Computation of the Internet Checksum via
-              Incremental Update", RFC 1624, May 1994.
-
-   [RFC1918]  Rekhter, Y., Moskowitz, R., Karrenberg, D., Groot, G., and
-              E. Lear, "Address Allocation for Private Internets",
-              BCP 5, RFC 1918, February 1996.
-
-
-
-Wasserman & Baker             Experimental                     [Page 20]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-   [RFC2827]  Ferguson, P. and D. Senie, "Network Ingress Filtering:
-              Defeating Denial of Service Attacks which employ IP Source
-              Address Spoofing", BCP 38, RFC 2827, May 2000.
-
-   [RFC2993]  Hain, T., "Architectural Implications of NAT", RFC 2993,
-              November 2000.
-
-   [RFC3424]  Daigle, L. and IAB, "IAB Considerations for UNilateral
-              Self-Address Fixing (UNSAF) Across Network Address
-              Translation", RFC 3424, November 2002.
-
-   [RFC3484]  Draves, R., "Default Address Selection for Internet
-              Protocol version 6 (IPv6)", RFC 3484, February 2003.
-
-   [RFC4864]  Van de Velde, G., Hain, T., Droms, R., Carpenter, B., and
-              E. Klein, "Local Network Protection for IPv6", RFC 4864,
-              May 2007.
-
-   [RFC5245]  Rosenberg, J., "Interactive Connectivity Establishment
-              (ICE): A Protocol for Network Address Translator (NAT)
-              Traversal for Offer/Answer Protocols", RFC 5245,
-              April 2010.
-
-   [RFC5389]  Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
-              "Session Traversal Utilities for NAT (STUN)", RFC 5389,
-              October 2008.
-
-   [RFC5766]  Mahy, R., Matthews, P., and J. Rosenberg, "Traversal Using
-              Relays around NAT (TURN): Relay Extensions to Session
-              Traversal Utilities for NAT (STUN)", RFC 5766, April 2010.
-
-   [RFC5902]  Thaler, D., Zhang, L., and G. Lebovitz, "IAB Thoughts on
-              IPv6 Network Address Translation", RFC 5902, July 2010.
-
-   [RFC5925]  Touch, J., Mankin, A., and R. Bonica, "The TCP
-              Authentication Option", RFC 5925, June 2010.
-
-   [RFC5996]  Kaufman, C., Hoffman, P., Nir, Y., and P. Eronen,
-              "Internet Key Exchange Protocol Version 2 (IKEv2)",
-              RFC 5996, September 2010.
-
-   [RFC6052]  Bao, C., Huitema, C., Bagnulo, M., Boucadair, M., and X.
-              Li, "IPv6 Addressing of IPv4/IPv6 Translators", RFC 6052,
-              October 2010.
-
-
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 21]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-   [RFC6092]  Woodyatt, J., "Recommended Simple Security Capabilities in
-              Customer Premises Equipment (CPE) for Providing
-              Residential IPv6 Internet Service", RFC 6092,
-              January 2011.
-
-   [RFC6144]  Baker, F., Li, X., Bao, C., and K. Yin, "Framework for
-              IPv4/IPv6 Translation", RFC 6144, April 2011.
-
-   [RFC6145]  Li, X., Bao, C., and F. Baker, "IP/ICMP Translation
-              Algorithm", RFC 6145, April 2011.
-
-   [RFC6146]  Bagnulo, M., Matthews, P., and I. van Beijnum, "Stateful
-              NAT64: Network Address and Protocol Translation from IPv6
-              Clients to IPv4 Servers", RFC 6146, April 2011.
-
-   [RFC6147]  Bagnulo, M., Sullivan, A., Matthews, P., and I. van
-              Beijnum, "DNS64: DNS Extensions for Network Address
-              Translation from IPv6 Clients to IPv4 Servers", RFC 6147,
-              April 2011.
-
-   [RFC6204]  Singh, H., Beebee, W., Donley, C., Stark, B., and O.
-              Troan, "Basic Requirements for IPv6 Customer Edge
-              Routers", RFC 6204, April 2011.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 22]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-Appendix A.  Why GSE?
+# Appendix A.  Why GSE?
 
    For the purpose of this discussion, let us oversimplify the
    Internet's structure by distinguishing between two broad classes of
@@ -1390,22 +926,8 @@ Appendix A.  Why GSE?
    In other words, we have prefixes for some 36,000 transit and edge
    networks in the route table now, many of which arguably need an
    Autonomous System number only for multihoming.  The vast majority of
-   networks (2/3) having the tools necessary to multihome are not
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 23]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-   visibly doing so and would be well served by any solution that gives
+   networks (2/3) having the tools necessary to multihome are not visibly
+   doing so and would be well served by any solution that gives
    them address independence without the overhead of RIR membership and
    BGP routing.
 
@@ -1435,13 +957,13 @@ RFC 6296                          NPTv6                        June 2011
    From an application perspective, an additional operational
    requirement in the words of the Roadmap for the Smart Grid [NIST] is
    that
-
+~~~~~~~~~~
       "...the network should provide the capability to enable an
       application in a particular domain to communicate with an
       application in any other domain over the information network, with
       proper management control as to who and where applications can be
       inter-connected."
-
+~~~~~~~~~~
    In other words, the structure of the network should allow for and
    enable appropriate access control, but the structure of the network
    should not inherently limit access.
@@ -1452,24 +974,11 @@ RFC 6296                          NPTv6                        June 2011
    the edge network to behave as if it has a provider-independent prefix
    from a multihoming and renumbering perspective without the overhead
    of RIR membership or maintenance of BGP connectivity, and it enables
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 24]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    the transit networks to aggressively aggregate what are from their
    perspective provider-allocated customer prefixes, to maintain a
    rational-sized routing table.
 
-Appendix B.  Verification Code
+# Appendix B.  Verification Code
 
    This non-normative appendix is presented as a proof of concept; it is
    in no sense optimized.  For example, one's complement arithmetic is
@@ -1483,14 +992,14 @@ Appendix B.  Verification Code
 
    The point is to
 
-   o  demonstrate that if one or the other representation of zero is not
+* demonstrate that if one or the other representation of zero is not
       used in the word in which the checksum is updated, the program
       maps inner and outer addresses in a manner that is,
       mathematically, 1:1 and onto (each inner address maps to a unique
       outer address, and that outer address maps back to exactly the
       same inner address), and
 
-   o  give guidance on the suppression of 0xFFFF checksums.
+* give guidance on the suppression of 0xFFFF checksums.
 
    In short, in one's complement arithmetic, x-x=0 but will take the
    negative representation of zero.  If 0xFFFF results are forced to the
@@ -1502,7 +1011,7 @@ Appendix B.  Verification Code
    0+(~0) = 0xFFFF.  We chose to follow [RFC1071]'s recommendations,
    which implies a requirement to not use 0xFFFF as a subnet number in
    networks with a /48 external prefix.
-
+~~~~~~~~~~
   /*
    * Copyright (c) 2011 IETF Trust and the persons identified as
    * authors of the code.  All rights reserved.
@@ -1513,18 +1022,6 @@ Appendix B.  Verification Code
    *
    * - Redistributions of source code must retain the above copyright
    *   notice, this list of conditions and the following disclaimer.
-
-
-
-Wasserman & Baker             Experimental                     [Page 25]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    *
    * - Redistributions in binary form must reproduce the above
    *   copyright notice, this list of conditions and the following
@@ -1574,17 +1071,6 @@ RFC 6296                          NPTv6                        June 2011
   unsigned short  datagram[8];
   unsigned char   checksum[65536] = {0};
 
-
-
-Wasserman & Baker             Experimental                     [Page 26]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
   unsigned short  outer[8];
   unsigned short  adjustment;
   unsigned short  suppress;
@@ -1633,18 +1119,6 @@ RFC 6296                          NPTv6                        June 2011
       unsigned short *numbers;
       int             count;
   {
-
-
-
-Wasserman & Baker             Experimental                     [Page 27]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
       unsigned int    result;
 
       result = *numbers++;
@@ -1693,18 +1167,6 @@ RFC 6296                          NPTv6                        June 2011
   }
 
   /*
-
-
-
-Wasserman & Baker             Experimental                     [Page 28]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    * NPTv6 datagram from edge to transit: Section 3.2 assuming
    * Section 3.4
    *
@@ -1753,18 +1215,6 @@ RFC 6296                          NPTv6                        June 2011
 
   /*
    * Main program
-
-
-
-Wasserman & Baker             Experimental                     [Page 29]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
    */
   main(argc, argv)
       int             argc;
@@ -1813,18 +1263,6 @@ RFC 6296                          NPTv6                        June 2011
                      inner[0], inner[1], inner[2], inner[3],
                      inner[4], inner[5], inner[6], inner[7],
                      sum1(inner, 8),
-
-
-
-Wasserman & Baker             Experimental                     [Page 30]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
                      datagram[0], datagram[1], datagram[2], datagram[3],
                      datagram[4], datagram[5], datagram[6], datagram[7],
                      sum1(datagram, 8));
@@ -1867,74 +1305,6 @@ RFC 6296                          NPTv6                        June 2011
           }
       }
   }
+~~~~~~~~~~
 
-
-
-
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 31]
-```
-
-------------------------------------------------------------------------
-
-``` newpage
-RFC 6296                          NPTv6                        June 2011
-
-
-Authors' Addresses
-
-   Margaret Wasserman
-   Painless Security
-   North Andover, MA  01845
-   USA
-
-   Phone: +1 781 405 7464
-   EMail: mrw@painless-security.com
-   URI:   http://www.painless-security.com
-
-
-   Fred Baker
-   Cisco Systems
-   Santa Barbara, California  93117
-   USA
-
-   Phone: +1-408-526-4257
-   EMail: fred@cisco.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wasserman & Baker             Experimental                     [Page 32]
-```
+--- back
