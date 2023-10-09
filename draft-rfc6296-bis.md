@@ -1,6 +1,6 @@
 ---
 title: "RFC 6296bis IPv6-to-IPv6 Network Prefix Translation"
-docname: draft-rfc6296-bis-00
+docname: draft-rfc6296-bis-latest
 submissiontype: IETF
 ipr: trust200902
 area: Internet
