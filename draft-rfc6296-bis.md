@@ -3,7 +3,7 @@ title: "RFC 6296bis IPv6-to-IPv6 Network Prefix Translation"
 docname: draft-rfc6296-bis-latest
 submissiontype: IETF
 ipr: trust200902
-area: Internet
+# area: Internet
 wg: 6MAN
 kw: Internet-Draft
 cat: std
