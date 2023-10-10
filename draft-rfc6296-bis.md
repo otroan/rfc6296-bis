@@ -1,27 +1,24 @@
 ---
-lang: en
-robots: index,follow
-title: "RFC 6296: IPv6-to-IPv6 Network Prefix Translation"
-cat: std
+title: "RFC 6296bis IPv6-to-IPv6 Network Prefix Translation"
+docname: draft-rfc6296-bis-latest
 submissiontype: IETF
 ipr: trust200902
-area: Int
+area: Internet
 wg: 6MAN
 kw: Internet-Draft
-updates: 6296
----
+cat: std
 
 author:
-      -
-        ins: M. Wasserman
-        name: Margaret Wasserman
-        org: Painless Security
-        email: mrw@painless-security.com
-      -
-        ins: F. Baker
-        name: Fred Baker
-        org: Cisco Systems
-        email: fred@cisco.com
+   -
+     ins: M. Wasserman
+     name: Margaret Wasserman
+     org: Painless Security
+     email: mrw@painless-security.com
+   -
+     ins: F. Baker
+     name: Fred Baker
+     org: Cisco Systems
+     email: fred@cisco.com
 
 normative:
     RFC2119:
@@ -32,8 +29,16 @@ normative:
     RFC4787:
 
 informative:
-    [GSE]
-    [NIST] 
+    GSE:
+      title: GSE - An Alternate Addressing Architecture for IPv6
+      author:
+        ins: M. O'Dell
+      date: February 1997
+    NIST:
+      title: Draft NIST Framework and Roadmap for Smart Grid Interoperability Standards, Release 1.0
+      author:
+         ins: NIST
+      date: September 2009
     RFC1071:
     RFC1624:
     RFC1918:
@@ -56,44 +61,45 @@ informative:
     RFC6147:
     RFC6204:
 
-    --- abstract
+--- abstract
 
-       This document describes a stateless, transport-agnostic IPv6-to-IPv6
-       Network Prefix Translation (NPTv6) function that provides the
-       address-independence benefit associated with IPv4-to-IPv4 NAT
-       (NAPT44) and provides a 1:1 relationship between addresses in the
-       "inside" and "outside" prefixes, preserving end-to-end reachability
-       at the network layer.
+This document describes a stateless, transport-agnostic IPv6-to-IPv6
+Network Prefix Translation (NPTv6) function that provides the
+address-independence benefit associated with IPv4-to-IPv4 NAT
+(NAPT44) and provides a 1:1 relationship between addresses in the
+"inside" and "outside" prefixes, preserving end-to-end reachability
+at the network layer.
 
 --- middle
+
 #  Introduction
 
-   This document describes a stateless IPv6-to-IPv6 Network Prefix
-   Translation (NPTv6) function, designed to provide address
-   independence to the edge network.  It is transport-agnostic with
-   respect to transports that do not checksum the IP header, such as
-   SCTP, and to transports that use the TCP/UDP/DCCP (Datagram
-   Congestion Control Protocol) pseudo-header and checksum [RFC1071].
+This document describes a stateless IPv6-to-IPv6 Network Prefix
+Translation (NPTv6) function, designed to provide address
+independence to the edge network.  It is transport-agnostic with
+respect to transports that do not checksum the IP header, such as
+SCTP, and to transports that use the TCP/UDP/DCCP (Datagram
+Congestion Control Protocol) pseudo-header and checksum {{RFC1071}}.
 
-   For reasons discussed in [RFC2993] and Section 5, the IETF does not
-   recommend the use of Network Address Translation technology for IPv6.
-   Where translation is implemented, however, this specification
-   provides a mechanism that has fewer architectural problems than
-   merely implementing a traditional stateful Network Address Translator
-   in an IPv6 environment.  It also provides a useful alternative to the
-   complexities and costs imposed by multihoming using provider-
-   independent addressing and the routing and network management issues
-   of overlaid ISP address space.  Some problems remain, however.  The
-   reader should consider the alternatives suggested in [RFC4864] and
-   the considerations of [RFC5902] for improved approaches.
+For reasons discussed in {{RFC2993}} and Section 5, the IETF does not
+recommend the use of Network Address Translation technology for IPv6.
+Where translation is implemented, however, this specification
+provides a mechanism that has fewer architectural problems than
+merely implementing a traditional stateful Network Address Translator
+in an IPv6 environment.  It also provides a useful alternative to the
+complexities and costs imposed by multihoming using provider-
+independent addressing and the routing and network management issues
+of overlaid ISP address space.  Some problems remain, however.  The
+reader should consider the alternatives suggested in {{RFC4864}} and
+the considerations of {{RFC5902}} for improved approaches.
 
-   The stateless approach described in this document has several
-   ramifications:
+The stateless approach described in this document has several
+ramifications:
 
 * Any security benefit that NAPT44 might offer is not present in
       NPTv6, necessitating the use of a firewall to obtain those
       benefits if desired.  An example of such a firewall is described
-      in [RFC6092].
+      in {{RFC6092}}.
 
 * End-to-end reachability is preserved, although the address used
       "inside" the edge network differs from the address used "outside"
@@ -111,161 +117,162 @@ informative:
       modify port numbers or other transport parameters.
 
 * TCP sessions that authenticate peers using the TCP Authentication
-      Option [RFC5925] cannot have their addresses translated, as the
+      Option {{RFC5925}} cannot have their addresses translated, as the
       addresses are used in the calculation of the Message
       Authentication Code.  This consideration applies in general to any
 
-* Unilateral Self-Address Fixing (UNSAF) [RFC3424] Protocol, which
+* Unilateral Self-Address Fixing (UNSAF) {{RFC3424}} Protocol, which
       the IAB recommends against the deployment of in an environment
       that changes Internet addresses.
 
 * Applications using the Internet Key Exchange Protocol Version 2
-      (IKEv2) [RFC5996] should, at least in theory, detect the presence
+      (IKEv2) {{RFC5996}} should, at least in theory, detect the presence
       of the translator; while no NAT traversal solution is required,
-      [RFC5996] would require such sessions to use UDP.
+      {{RFC5996}} would require such sessions to use UDP.
 
 ##  What is Address Independence?
 
-   For the purposes of this document, IPv6 address independence consists
-   of the following set of properties:
+For the purposes of this document, IPv6 address independence consists
+of the following set of properties:
 
-   From the perspective of the edge network:
+From the perspective of the edge network:
 
-      *  The IPv6 addresses used inside the local network (for
-         interfaces, access lists, and logs) do not need to be
-         renumbered if the global prefix(es) assigned for use by the
-         edge network are changed.
+*  The IPv6 addresses used inside the local network (for
+   interfaces, access lists, and logs) do not need to be
+   renumbered if the global prefix(es) assigned for use by the
+   edge network are changed.
 
-      *  The IPv6 addresses used inside the edge network (for
-         interfaces, access lists, and logs) or within other upstream
-         networks (such as when multihoming) do not need to be
-         renumbered when a site adds, drops, or changes upstream
-         networks.
+*  The IPv6 addresses used inside the edge network (for
+   interfaces, access lists, and logs) or within other upstream
+   networks (such as when multihoming) do not need to be
+   renumbered when a site adds, drops, or changes upstream
+   networks.
 
-      *  It is not necessary for an administration to convince an
-         upstream network to route its internal IPv6 prefixes or for it
-         to advertise prefixes derived from other upstream networks into
-         it.
+*  It is not necessary for an administration to convince an
+   upstream network to route its internal IPv6 prefixes or for it
+   to advertise prefixes derived from other upstream networks into
+   it.
 
-      *  Unless it wants to optimize routing between multiple upstream
-         networks in the process of multihoming, there is no need for a
-         BGP exchange with the upstream network.
+*  Unless it wants to optimize routing between multiple upstream
+   networks in the process of multihoming, there is no need for a
+   BGP exchange with the upstream network.
 
-   From the perspective of the upstream network:
+From the perspective of the upstream network:
 
-      *  IPv6 addresses used by the edge network are guaranteed to have
-         a provider-allocated prefix, eliminating the need and concern
-         for BCP 38 [RFC2827] ingress filtering and the advertisement of
-         customer-specific prefixes.
+   *  IPv6 addresses used by the edge network are guaranteed to have
+      a provider-allocated prefix, eliminating the need and concern
+      for BCP 38 {{RFC2827}} ingress filtering and the advertisement of
+      customer-specific prefixes.
 
-   Thus, address independence has ramifications for the edge network,
-   networks it directly connects with (especially its upstream
-   networks), and the Internet as a whole.  The desire for address
-   independence has been a primary driver for IPv4 NAT deployment in
-   medium- to large-sized enterprise networks, including NAT deployments
+Thus, address independence has ramifications for the edge network,
+networks it directly connects with (especially its upstream
+networks), and the Internet as a whole.  The desire for address
+independence has been a primary driver for IPv4 NAT deployment in
+medium- to large-sized enterprise networks, including NAT deployments
 
 
-   in enterprises that have plenty of IPv4 provider-independent address
-   space (from IPv4 "swamp space").  It has also been a driver for edge
-   networks to become members of Regional Internet Registry (RIR)
-   communities, seeking to obtain BGP Autonomous System Numbers and
-   provider-independent prefixes, and as a result has been one of the
-   drivers of the explosion of the IPv4 route table.  Service providers
-   have stated that the lack of address independence from their
-   customers has been a negative incentive to deployment, due to the
-   impact of customer routing expected in their networks.
+in enterprises that have plenty of IPv4 provider-independent address
+space (from IPv4 "swamp space").  It has also been a driver for edge
+networks to become members of Regional Internet Registry (RIR)
+communities, seeking to obtain BGP Autonomous System Numbers and
+provider-independent prefixes, and as a result has been one of the
+drivers of the explosion of the IPv4 route table.  Service providers
+have stated that the lack of address independence from their
+customers has been a negative incentive to deployment, due to the
+impact of customer routing expected in their networks.
 
-   The Local Network Protection [RFC4864] document discusses a related
-   concept called "Address Autonomy" as a benefit of NAPT44.  [RFC4864]
-   indicates that address autonomy can be achieved by the simultaneous
-   use of global addresses on all nodes within a site that need external
-   connectivity and Unique Local Addresses (ULAs) [RFC4193] for all
-   internal communication.  However, this solution fails to meet the
-   requirement for address independence, because if an ISP renumbering
-   event occurs, all of the hosts, routers, DHCP servers, Access Control
-   Lists (ACLs), firewalls, and other internal systems that are
-   configured with global addresses from the ISP will need to be
-   renumbered before global connectivity is fully restored.
+The Local Network Protection {{RFC4864}} document discusses a related
+concept called "Address Autonomy" as a benefit of NAPT44.  {{RFC4864}}
+indicates that address autonomy can be achieved by the simultaneous
+use of global addresses on all nodes within a site that need external
+connectivity and Unique Local Addresses (ULAs) {{RFC4193}} for all
+internal communication.  However, this solution fails to meet the
+requirement for address independence, because if an ISP renumbering
+event occurs, all of the hosts, routers, DHCP servers, Access Control
+Lists (ACLs), firewalls, and other internal systems that are
+configured with global addresses from the ISP will need to be
+renumbered before global connectivity is fully restored.
 
-   The use of IPv6 provider-independent (PI) addresses has also been
-   suggested as a means to fulfill the address-independence requirement.
-   However, this solution requires that an enterprise qualify to receive
-   a PI assignment and persuade its ISP to install specific routes for
-   the enterprise's PI addresses.  There are a number of practical
-   issues with this approach, especially if there is a desire to route
-   to a number of geographically and topologically diverse sites, which
-   can sometimes involve coordinating with several ISPs to route
-   portions of a single PI prefix.  These problems have caused numerous
-   enterprises with plenty of IPv4 swamp space to choose to use IPv4 NAT
-   for part, or substantially all, of their internal network instead of
-   using their provider-independent address space.
+The use of IPv6 provider-independent (PI) addresses has also been
+suggested as a means to fulfill the address-independence requirement.
+However, this solution requires that an enterprise qualify to receive
+a PI assignment and persuade its ISP to install specific routes for
+the enterprise's PI addresses.  There are a number of practical
+issues with this approach, especially if there is a desire to route
+to a number of geographically and topologically diverse sites, which
+can sometimes involve coordinating with several ISPs to route
+portions of a single PI prefix.  These problems have caused numerous
+enterprises with plenty of IPv4 swamp space to choose to use IPv4 NAT
+for part, or substantially all, of their internal network instead of
+using their provider-independent address space.
+
 ##  NPTv6 Applicability
 
-   NPTv6 provides a simple and compelling solution to meet the address-
-   independence requirement in IPv6.  The address-independence benefit
-   stems directly from the translation function of the network prefix
-   translator.  To avoid as many of the issues associated with NAPT44 as
-   possible, NPTv6 is defined to include a two-way, checksum-neutral,
-   algorithmic translation function, and nothing else.
+NPTv6 provides a simple and compelling solution to meet the address-
+independence requirement in IPv6.  The address-independence benefit
+stems directly from the translation function of the network prefix
+translator.  To avoid as many of the issues associated with NAPT44 as
+possible, NPTv6 is defined to include a two-way, checksum-neutral,
+algorithmic translation function, and nothing else.
 
-   The fact that NPTv6 does not map ports and is checksum-neutral avoids
-   the need for an NPTv6 Translator to rewrite transport layer headers.
-   This makes it feasible to deploy new or improved transport layer 
-   protocols without upgrading NPTv6 Translators.  Similarly, since
-   NPTv6 does not rewrite transport layer headers, NPTv6 will not
-   interfere with encryption of the full IP payload in many cases.
+The fact that NPTv6 does not map ports and is checksum-neutral avoids
+the need for an NPTv6 Translator to rewrite transport layer headers.
+This makes it feasible to deploy new or improved transport layer
+protocols without upgrading NPTv6 Translators.  Similarly, since
+NPTv6 does not rewrite transport layer headers, NPTv6 will not
+interfere with encryption of the full IP payload in many cases.
 
-   The default NPTv6 address-mapping mechanism is purely algorithmic, so
-   NPTv6 translators do not need to maintain per-node or per-connection
-   state, allowing deployment of more robust and adaptive networks than
-   can be deployed using NAPT44.  Since the default NPTv6 mapping can be
-   performed in either direction, it does not interfere with inbound
-   connection establishment, thus allowing internal nodes to participate
-   in direct Peer-to-Peer applications without the application layer
-   overhead one finds in many IPv4 Peer-to-Peer applications.
+The default NPTv6 address-mapping mechanism is purely algorithmic, so
+NPTv6 translators do not need to maintain per-node or per-connection
+state, allowing deployment of more robust and adaptive networks than
+can be deployed using NAPT44.  Since the default NPTv6 mapping can be
+performed in either direction, it does not interfere with inbound
+connection establishment, thus allowing internal nodes to participate
+in direct Peer-to-Peer applications without the application layer
+overhead one finds in many IPv4 Peer-to-Peer applications.
 
-   Although NPTv6 compares favorably to NAPT44 in several ways, it does
-   not eliminate all of the architectural problems associated with IPv4
-   NAT, as described in [RFC2993].  NPTv6 involves modifying IP headers
-   in transit, so it is not compatible with security mechanisms, such as
-   the IPsec Authentication Header, that provide integrity protection
-   for the IP header.  NPTv6 may interfere with the use of application
-   protocols that transmit IP addresses in the application-specific
-   portion of the IP datagram.  These applications currently require
-   Application Layer Gateways (ALGs) to work correctly through NAPT44
-   devices, and similar ALGs may be required for these applications to
-   work through NPTv6 Translators.  The use of separate internal and
-   external prefixes creates complexity for DNS deployment, due to the
-   desire for internal nodes to communicate with other internal nodes
-   using internal addresses, while external nodes need to obtain
-   external addresses to communicate with the same nodes.  This
-   frequently results in the deployment of "split DNS", which may add
-   complexity to network configuration.
+Although NPTv6 compares favorably to NAPT44 in several ways, it does
+not eliminate all of the architectural problems associated with IPv4
+NAT, as described in {{RFC2993}}.  NPTv6 involves modifying IP headers
+in transit, so it is not compatible with security mechanisms, such as
+the IPsec Authentication Header, that provide integrity protection
+for the IP header.  NPTv6 may interfere with the use of application
+protocols that transmit IP addresses in the application-specific
+portion of the IP datagram.  These applications currently require
+Application Layer Gateways (ALGs) to work correctly through NAPT44
+devices, and similar ALGs may be required for these applications to
+work through NPTv6 Translators.  The use of separate internal and
+external prefixes creates complexity for DNS deployment, due to the
+desire for internal nodes to communicate with other internal nodes
+using internal addresses, while external nodes need to obtain
+external addresses to communicate with the same nodes.  This
+frequently results in the deployment of "split DNS", which may add
+complexity to network configuration.
 
-   The choice of address within the edge network bears consideration.
-   One could use a ULA, which maximizes address independence.  That
-   could also be considered a misuse of the ULA; if the expectation is
-   that a ULA prevents access to a system from outside the range of the
-   ULA, NPTv6 overrides that.  On the other hand, the administration is
-   aware that it has made that choice and could deploy a second ULA for
-   the purpose of privacy if it desired; the only prefix that will be
-   translated is one that has an NPTv6 Translator configured to
-   translate to or from it.  Also, using any other global-scope address
-   format makes one either obtain a PI prefix or be at the mercy of the
-   agency from which it was allocated.
+The choice of address within the edge network bears consideration.
+One could use a ULA, which maximizes address independence.  That
+could also be considered a misuse of the ULA; if the expectation is
+that a ULA prevents access to a system from outside the range of the
+ULA, NPTv6 overrides that.  On the other hand, the administration is
+aware that it has made that choice and could deploy a second ULA for
+the purpose of privacy if it desired; the only prefix that will be
+translated is one that has an NPTv6 Translator configured to
+translate to or from it.  Also, using any other global-scope address
+format makes one either obtain a PI prefix or be at the mercy of the
+agency from which it was allocated.
 
-   There are significant technical impacts associated with the
-   deployment of any prefix translation mechanism, including NPTv6, and
-   we strongly encourage anyone who is considering the implementation or
-   deployment of NPTv6 to read [RFC4864] and [RFC5902], and to carefully
-   consider the alternatives described in that document, some of which
-   may cause fewer problems than NPTv6.
+There are significant technical impacts associated with the
+deployment of any prefix translation mechanism, including NPTv6, and
+we strongly encourage anyone who is considering the implementation or
+deployment of NPTv6 to read {{RFC4864}} and {{RFC5902}}, and to carefully
+consider the alternatives described in that document, some of which
+may cause fewer problems than NPTv6.
 
 ##  Requirements Terminology
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in RFC 2119 [RFC2119].
+   document are to be interpreted as described in RFC 2119 {{RFC2119}}.
 
 #  NPTv6 Overview
 
@@ -276,16 +283,16 @@ informative:
 
 ##  NPTv6: The Simplest Case
 
-   In its simplest form, an NPTv6 Translator interconnects two network
-   links, one of which is an "internal" network link attached to a leaf
-   network within a single administrative domain and the other of which
-   is an "external" network with connectivity to the global Internet.
-   All of the hosts on the internal network will use addresses from a
-   single, locally routed prefix, and those addresses will be translated
-   to/from addresses in a globally routable prefix as IP datagrams
-   transit the NPTv6 Translator.  The lengths of these two prefixes will
-   be functionally the same; if they differ, the longer of the two will
-   limit the ability to use subnets in the shorter.
+In its simplest form, an NPTv6 Translator interconnects two network
+links, one of which is an "internal" network link attached to a leaf
+network within a single administrative domain and the other of which
+is an "external" network with connectivity to the global Internet.
+All of the hosts on the internal network will use addresses from a
+single, locally routed prefix, and those addresses will be translated
+to/from addresses in a globally routable prefix as IP datagrams
+transit the NPTv6 Translator.  The lengths of these two prefixes will
+be functionally the same; if they differ, the longer of the two will
+limit the ability to use subnets in the shorter.
 
 ~~~~~~~~~~
 
@@ -305,27 +312,27 @@ informative:
                        Figure 1: A Simple Translator
 ~~~~~~~~~~
 
-   Figure 1 shows an NPTv6 Translator attached to two networks.  In this
-   example, the internal network uses IPv6 Unique Local Addresses (ULAs)
-   [RFC4193] to represent the internal IPv6 nodes, and the external
-   network uses globally routable IPv6 addresses to represent the same
-   nodes.
+Figure 1 shows an NPTv6 Translator attached to two networks.  In this
+example, the internal network uses IPv6 Unique Local Addresses (ULAs)
+{{RFC4193}} to represent the internal IPv6 nodes, and the external
+network uses globally routable IPv6 addresses to represent the same
+nodes.
 
-   When an NPTv6 Translator forwards datagrams in the "outbound"
-   direction, from the internal network to the external network, NPTv6
-   overwrites the IPv6 source prefix (in the IPv6 header) with a
-   corresponding external prefix.  When datagrams are forwarded in the
-   "inbound" direction, from the external network to the internal
-   network, the IPv6 destination prefix is overwritten with a
-   corresponding internal prefix.  Using the prefixes shown in the
-   diagram above, as an IP datagram passes through the NPTv6 Translator
-   in the outbound direction, the source prefix (FD01:0203:0405:/48)
-   will be overwritten with the external prefix (2001:0DB8:0001:/48).
-   In an inbound datagram, the destination prefix (2001:0DB8:0001:/48)
-   will be overwritten with the internal prefix (FD01:0203:0405:/48).
-   In both cases, it is the local IPv6 prefix that is overwritten; the
-   remote IPv6 prefix remains unchanged.  Nodes on the internal network
-   are said to be "behind" the NPTv6 Translator.
+When an NPTv6 Translator forwards datagrams in the "outbound"
+direction, from the internal network to the external network, NPTv6
+overwrites the IPv6 source prefix (in the IPv6 header) with a
+corresponding external prefix.  When datagrams are forwarded in the
+"inbound" direction, from the external network to the internal
+network, the IPv6 destination prefix is overwritten with a
+corresponding internal prefix.  Using the prefixes shown in the
+diagram above, as an IP datagram passes through the NPTv6 Translator
+in the outbound direction, the source prefix (FD01:0203:0405:/48)
+will be overwritten with the external prefix (2001:0DB8:0001:/48).
+In an inbound datagram, the destination prefix (2001:0DB8:0001:/48)
+will be overwritten with the internal prefix (FD01:0203:0405:/48).
+In both cases, it is the local IPv6 prefix that is overwritten; the
+remote IPv6 prefix remains unchanged.  Nodes on the internal network
+are said to be "behind" the NPTv6 Translator.
 
 2.2.  NPTv6 between Peer Networks
 
@@ -410,7 +417,7 @@ informative:
    (prefix and IID) to the common internal address.  A system within the
    edge network is unable to determine which external address it is
    using apart from services such as Session Traversal Utilities for NAT
-   (STUN) [RFC5389].
+   (STUN) {{RFC5389}}.
 
    Multihoming in this sense has one negative feature as compared with
    multihoming with a provider-independent address: when routes change
@@ -437,8 +444,8 @@ informative:
    pseudo-header checksum (such as one of the IP addresses), the
    checksum field in the transport layer header may become invalid.
    Fortunately, an incremental change in the area covered by the
-   Internet standard checksum [RFC1071] will result in a well-defined
-   change to the checksum value [RFC1624].  So, a checksum change caused
+   Internet standard checksum {{RFC1071}} will result in a well-defined
+   change to the checksum value {{RFC1624}}.  So, a checksum change caused
    by modifying part of the area covered by the checksum can be
    corrected by making a complementary change to a different 16-bit
    field covered by the same checksum.
@@ -446,7 +453,7 @@ informative:
    The NPTv6 mapping mechanisms described in this document are checksum-
    neutral, which means that they result in IP headers that will
    generate the same IPv6 pseudo-header checksum when the checksum is
-   calculated using the standard Internet checksum algorithm [RFC1071].
+   calculated using the standard Internet checksum algorithm {{RFC1071}}.
    Any changes that are made during translation of the IPv6 prefix are
    offset by changes to other parts of the IPv6 address.  This results
    in transport layers that use the Internet checksum (such as TCP and
@@ -467,7 +474,7 @@ informative:
 
 #  NPTv6 Algorithmic Specification
 
-   The [RFC4291] IPv6 Address is reproduced for clarity in Figure 5.
+   The {{RFC4291}} IPv6 Address is reproduced for clarity in Figure 5.
    ~~~~~~~~~~
 
       0    15 16   31 32   47 48   63 64   79 80   95 96  111 112  127
@@ -475,7 +482,7 @@ informative:
      |     Routing Prefix    | Subnet|   Interface Identifier (IID)  |
      +-------+-------+-------+-------+-------+-------+-------+-------+
 
-            Figure 5: Enumeration of the IPv6 Address [RFC4291]
+            Figure 5: Enumeration of the IPv6 Address {{RFC4291}}
 ~~~~~~~~~~
 
 ##  NPTv6 Configuration Calculations
@@ -638,10 +645,10 @@ informative:
 
    Although any 16-bit portion of an IPv6 IID could contain 0xFFFF, an
    IID of all-ones is a reserved anycast identifier that should not be
-   used on the network [RFC2526].  If an NPTv6 Translator discovers a
+   used on the network {{RFC2526}}.  If an NPTv6 Translator discovers a
    datagram with an IID of all-zeros while performing address mapping,
    that datagram MUST be dropped, and an ICMPv6 Parameter Problem error
-   SHOULD be generated [RFC4443].
+   SHOULD be generated {{RFC4443}}.
    Note: This mechanism does involve modification of the IID; it may not
    be compatible with future mechanisms that use unique IIDs for node
    identification.
@@ -653,11 +660,11 @@ informative:
    NPTv6 Translators MUST support manual configuration of internal and
    external prefixes and MUST NOT place any restrictions on those
    prefixes except that they be valid IPv6 unicast prefixes as described
-   in [RFC4291].  They MAY also support random generation of ULA
+   in {{RFC4291}}.  They MAY also support random generation of ULA
    addresses on command.  Since the most common place anticipated for
    the implementation of an NPTv6 Translator is a Customer Premises
    Equipment (CPE) router, the reader is urged to consider the
-   requirements of [RFC6204].
+   requirements of {{RFC6204}}.
 
 ##  Subnet Numbering
 
@@ -668,7 +675,7 @@ informative:
 ##  NAT Behavioral Requirements
 
    NPTv6 Translators MUST support hairpinning behavior, as defined in
-   the NAT Behavioral Requirements for UDP document [RFC4787].  This
+   the NAT Behavioral Requirements for UDP document {{RFC4787}}.  This
    means that when an NPTv6 Translator receives a datagram on the
    internal interface that has a destination address that matches the
    site's external prefix, it will translate the datagram and forward it
@@ -695,7 +702,7 @@ informative:
 #  Implications for Applications
 
    NPTv6 Translation does not create several of the problems known to
-   exist with other kinds of NATs as discussed in [RFC2993].  In
+   exist with other kinds of NATs as discussed in {{RFC2993}}.  In
    particular, NPTv6 Translation is stateless, so a "reset" or brief
    outage of an NPTv6 Translator does not break connections that
    traverse the translation function, and if multiple NPTv6 Translators
@@ -728,7 +735,7 @@ informative:
       NPTv6 Translator implements hairpinning (Section 4.3), it suffices
       for applications to always use their external addresses.  However,
       this creates inefficiencies in the local network and may also
-      complicate implementation of the NPTv6 Translator.  [RFC3484] also
+      complicate implementation of the NPTv6 Translator.  {{RFC3484}} also
       would prefer the private address in such a case in order to reduce
       those inefficiencies.
 
@@ -783,9 +790,9 @@ informative:
 
 ##  Recommendations for Application Writers
 
-   Several mechanisms (e.g., STUN [RFC5389], Traversal Using Relays
-   around NAT (TURN) [RFC5766], and Interactive Connectivity
-   Establishment (ICE) [RFC5245]) have been used with traditional IPv4
+   Several mechanisms (e.g., STUN {{RFC5389}}, Traversal Using Relays
+   around NAT (TURN) {{RFC5766}}, and Interactive Connectivity
+   Establishment (ICE) {{RFC5245}}) have been used with traditional IPv4
    NAT to circumvent some of the limitations of such devices.  Similar
    mechanisms could also be applied to circumvent some of the issues
    with an NPTv6 Translator.  However, all of these require the
@@ -800,8 +807,8 @@ informative:
    addresses and/or request that inbound traffic be permitted.  If such
    a mechanism were to be defined, it would ideally be general enough to
    also accommodate other types of NAT likely to be encountered by IPV6
-   applications, in particular IPv4/IPv6 Translation [RFC6144] [RFC6147]
-   [RFC6145] [RFC6146] [RFC6052].  For this and other reasons, such a
+   applications, in particular IPv4/IPv6 Translation {{RFC6144}} {{RFC6147}}
+   {{RFC6145}} {{RFC6146}} {{RFC6052}}.  For this and other reasons, such a
    mechanism is beyond the scope of this document.
 
 #  A Note on Port Mapping
@@ -813,7 +820,7 @@ informative:
 
    The major benefit of port mapping is that it allows multiple
    computers to share a single IPv4 address.  A large number of internal
-   IPv4 addresses (typically from one of the [RFC1918] private address
+   IPv4 addresses (typically from one of the {{RFC1918}} private address
    spaces) can be mapped into a single external, globally routable IPv4
    address, with the local port number used to identify which internal
    node should receive each inbound datagram.  This address-
@@ -851,20 +858,20 @@ informative:
    firewall.  It is not.  The translation function of the NAT only
    creates dynamic state in one direction and has no policy.  For this
    reason, it is RECOMMENDED that NPTv6 Translators also implement
-   firewall functionality such as described in [RFC6092], with
+   firewall functionality such as described in {{RFC6092}}, with
    appropriate configuration options including turning it on or off.
 
-   When [RFC4864] talks about randomizing the subnet identifier, the
+   When {{RFC4864}} talks about randomizing the subnet identifier, the
    idea is to make it harder for worms to guess a valid subnet
    identifier at an advertised network prefix.  This should not be
    interpreted as endorsing concealment of the subnet identifier behind
-   the obfuscating function of a translator such as NPTv6.  [RFC4864]
+   the obfuscating function of a translator such as NPTv6.  {{RFC4864}}
    specifically talks about how to obtain the desired properties of
    concealment without using a translator.  Topology hiding when using
    NAT is often ineffective in environments where the topology is
    visible in application layer messaging protocols such as DNS, SIP,
    SMTP, etc.  If the information were not available through the
-   application layer, [RFC2993] would not be valid.
+   application layer, {{RFC2993}} would not be valid.
 
    Due to the potential interactions with IKEv2/IPsec NAT traversal, it
    would be valuable to test interactions of NPTv6 with various aspects
@@ -881,7 +888,9 @@ informative:
    Jari Arkko, Keith Moore, Mark Townsley, Merike Kaeo, Ralph Droms,
    Remi Despres, Steve Blake, and Tony Hain.
 
-# Appendix A.  Why GSE?
+--- back
+
+# Why GSE?
 
    For the purpose of this discussion, let us oversimplify the
    Internet's structure by distinguishing between two broad classes of
@@ -899,7 +908,7 @@ informative:
    edge network is generally quite satisfied with a simple default
    route.
 
-   The [GSE] proposal, and as a result this proposal (which is similar
+   The {{GSE}} proposal, and as a result this proposal (which is similar
    to GSE in most respects and inspired by it), responds directly to
    current concerns in the RIR communities.  Edge networks are used to
    an environment in IPv4 in which their addressing is disjoint from
@@ -955,7 +964,7 @@ informative:
    renumber when it adds, drops, or changes ISPs, and with no additional
    burden placed either on the ISP or the edge network as a result.
    From an application perspective, an additional operational
-   requirement in the words of the Roadmap for the Smart Grid [NIST] is
+   requirement in the words of the Roadmap for the Smart Grid {{NIST}} is
    that
 ~~~~~~~~~~
       "...the network should provide the capability to enable an
@@ -978,7 +987,7 @@ informative:
    perspective provider-allocated customer prefixes, to maintain a
    rational-sized routing table.
 
-# Appendix B.  Verification Code
+# Verification Code
 
    This non-normative appendix is presented as a proof of concept; it is
    in no sense optimized.  For example, one's complement arithmetic is
@@ -1003,15 +1012,17 @@ informative:
 
    In short, in one's complement arithmetic, x-x=0 but will take the
    negative representation of zero.  If 0xFFFF results are forced to the
-   value 0x0000, as is recommended in [RFC1071], the word the checksum
+   value 0x0000, as is recommended in {{RFC1071}}, the word the checksum
    is adjusted in cannot be initially 0xFFFF, as on the return it will
    be forced to 0.  If 0xFFFF results are not forced to the value 0x0000
-   as is recommended in [RFC1071], the word the checksum is adjusted in
+   as is recommended in {{RFC1071}}, the word the checksum is adjusted in
    cannot be initially 0, as on the return it will be calculated as
-   0+(~0) = 0xFFFF.  We chose to follow [RFC1071]'s recommendations,
+   0+(~0) = 0xFFFF.  We chose to follow {{RFC1071}}'s recommendations,
    which implies a requirement to not use 0xFFFF as a subnet number in
    networks with a /48 external prefix.
-~~~~~~~~~~
+
+~~~~~~~~~~~
+
   /*
    * Copyright (c) 2011 IETF Trust and the persons identified as
    * authors of the code.  All rights reserved.
@@ -1305,6 +1316,5 @@ informative:
           }
       }
   }
-~~~~~~~~~~
 
---- back
+~~~~~~~~~~~
