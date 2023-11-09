@@ -21,6 +21,16 @@ author:
      name: Fred Baker
      org: Cisco Systems
      email: fred@cisco.com
+   -
+     ins: O. Troan
+     name: Ole Troan
+     org: Cisco Systems
+     email: otroan@cisco.com
+   -
+     ins: N. Buraglio
+     name: Nick Buraglio
+     org: Energy Sciences Network
+     email: buraglio@forwardingplane.net
 
 normative:
     RFC2119:
@@ -606,7 +616,7 @@ are said to be "behind" the NPTv6 Translator.
    in a mapped external address of 2001:0DB8:0001:D550::1234.
 
    When a response datagram is received, it will contain the destination
-   address 2001:0DB8:0001:D550::0001, which will be mapped back to FD01:
+   address 2001:0DB8:0001:D550::1234, which will be mapped back to FD01:
    0203:0405:0001::1234 using the inverse mapping algorithm.
 
    In this case, the difference between the two prefixes will be
