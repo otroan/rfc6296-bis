@@ -21,6 +21,16 @@ author:
      name: Fred Baker
      org: Cisco Systems
      email: fred@cisco.com
+   -
+     ins: O. Troan
+     name: Ole Troan
+     org: Cisco Systems
+     email: otroan@cisco.com
+   -
+     ins: N. Buraglio
+     name: Nick Buraglio
+     org: Energy Sciences Network
+     email: buraglio@forwardingplane.net
 
 normative:
     RFC2119:
