@@ -665,6 +665,38 @@ are said to be "behind" the NPTv6 Translator.
    be compatible with future mechanisms that use unique IIDs for node
    identification.
 
+## ICMPv6 error forwarding
+
+   This section describes the processing of ICMPv6 error messages and is similar to
+   the ICMP error forwarding specified for IPv4 NATs in {{RFC5508}}.
+
+   For an ICMPv6 error, both the addresses in the outer IPv6 header and the embedded IPv6 header
+   in the ICMPv6 error message must be translated.
+
+   For an ICMPv6 error received from the "outside", the embedded IPv6 header source address
+   is translated from the external prefix to the internal prefix. While the outer IPv6 header
+   destination address is translated from the external prefix to the internal prefix as normal.
+   If the embedded IPv6 source address prefix does not match the external prefix prior to the rewrite,
+   the packet MUST be silently dropped.
+
+   For an ICMPv6 error received from the "inside", the embedded IPv6 header destination address
+   is translated from the internal prefix to the external prefix. While the outer IPv6 header
+   source address is translated from the internal prefix to the external prefix as normal.
+   If the embedded IPv6 destination address prefix does not match the internal prefix prior to the rewrite,
+   the packet MUST be silently dropped.
+
+   The ICMPv6 forwarding function MUST verify that the length of the embedded pacekt is long enough to contain the whole IPv6 header.
+
+   An ICMPv6 Error message checksum covers the entire ICMPv6 message,
+   including the payload.  When an ICMPv6 Error packet is received, if the
+   ICMPv6 checksum fails to validate, NPTv6 SHOULD silently drop the
+   ICMPv6 Error packet.  This is because NATv6 uses the embedded IPv6 and
+   transport headers for forwarding and translating the ICMPv6 Error
+   message.  When the ICMPv6 checksum is
+   invalid, the embedded IPv6 and transport headers, which are covered by
+   the ICMPv6 checksum, are also suspect.
+
+
 #  Implications of Network Address Translator Behavioral Requirements
 
 ##  Prefix Configuration and Generation
